@@ -21,17 +21,15 @@ import java.util.Map;
  */
 public class CanvasApiFactory {
 
-    private static final Logger LOG = Logger.getLogger(CanvasApiFactory.class);
-
     public static final Integer CANVAS_API_VERSION = 1;
+    private static final Logger LOG = Logger.getLogger(CanvasApiFactory.class);
     private static final int DEFAULT_CONNECT_TIMEOUT_MS = 5000;
     private static final int DEFAULT_READ_TIMEOUT_MS = 120000;
+    Map<Class<? extends CanvasReader>, Class<? extends BaseImpl>> readerMap;
+    Map<Class<? extends CanvasWriter>, Class<? extends BaseImpl>> writerMap;
     private String canvasBaseUrl;
     private int connectTimeout;
     private int readTimeout;
-
-    Map<Class<? extends CanvasReader>, Class<? extends BaseImpl>> readerMap;
-    Map<Class<? extends CanvasWriter>, Class<? extends BaseImpl>> writerMap;
 
     /**
      * Construct an API factory for a given instance of Canvas.
@@ -105,6 +103,7 @@ public class CanvasApiFactory {
      * Get a writer implementation to push data into Canvas.
      * @param type Interface type you wish to get an implementation for
      * @param oauthToken An OAuth token to use for authentication when making API calls
+     * @param <T> A writer implementation
      * @return A writer implementation class
      */
     public <T extends CanvasWriter> T getWriter(Class<T> type, OauthToken oauthToken) {
@@ -145,7 +144,10 @@ public class CanvasApiFactory {
         readerMap.put(PageReader.class, PageImpl.class);
         readerMap.put(EnrollmentTermReader.class, EnrollmentTermImpl.class);
         readerMap.put(SubmissionReader.class, SubmissionImpl.class);
-        readerMap.put(RolesReader.class, RolesImpl.class);
+        readerMap.put(AssignmentGroupReader.class, AssignmentGroupImpl.class);
+        readerMap.put(RoleReader.class, RoleImpl.class);
+        readerMap.put(ExternalToolReader.class, ExternalToolImpl.class);
+        readerMap.put(LoginReader.class, LoginImpl.class);
 
         writerMap.put(AssignmentOverrideWriter.class, AssignmentOverrideImpl.class);
         writerMap.put(AssignmentWriter.class, AssignmentImpl.class);
@@ -161,6 +163,9 @@ public class CanvasApiFactory {
         writerMap.put(PageWriter.class, PageImpl.class);
         writerMap.put(SectionWriter.class, SectionsImpl.class);
         writerMap.put(SubmissionWriter.class, SubmissionImpl.class);
-        writerMap.put(RolesWriter.class, RolesImpl.class);
+        writerMap.put(AssignmentGroupWriter.class, AssignmentGroupImpl.class);
+        writerMap.put(RoleWriter.class, RoleImpl.class);
+        writerMap.put(ExternalToolWriter.class, ExternalToolImpl.class);
+        writerMap.put(LoginWriter.class, LoginImpl.class);
     }
 }
