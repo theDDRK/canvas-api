@@ -1,12 +1,11 @@
 package edu.ksu.canvas.model;
 
 import com.google.gson.annotations.SerializedName;
-import edu.ksu.canvas.annotation.CanvasField;
-import edu.ksu.canvas.annotation.CanvasObject;
+
+import edu.ksu.canvas.annotation.*;
 
 import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Class to represent Canvas courses.
@@ -32,9 +31,11 @@ public class Course extends BaseCanvasModel implements Serializable {
     private String workflowState;
     private Integer totalStudents;
     private Long enrollmentTermId;
+    private String subaccountName;
 
     private List<Section> sections;
     private List<Enrollment> enrollments;
+    private List<UserDisplay> teachers;
 
     @SerializedName("term")
     private EnrollmentTerm enrollmentTerm;
@@ -201,5 +202,23 @@ public class Course extends BaseCanvasModel implements Serializable {
 
     public void setEnrollments(List<Enrollment> enrollments) {
         this.enrollments = enrollments;
+    }
+
+    public String getSubaccountName() {
+        return subaccountName;
+    }
+
+    @CanvasField(postKey = "subaccount_name")
+    public void setSubaccountName(String subaccountName) {
+        this.subaccountName = subaccountName;
+    }
+
+    @CanvasField(postKey = "teachers")
+    public List<UserDisplay> getTeachers() {
+        return teachers;
+    }
+
+    public void setTeachers(List<UserDisplay> teachers) {
+        this.teachers = teachers;
     }
 }
