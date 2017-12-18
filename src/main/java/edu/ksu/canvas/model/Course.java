@@ -31,6 +31,7 @@ public class Course extends BaseCanvasModel implements Serializable {
     private String workflowState;
     private Integer totalStudents;
     private Long enrollmentTermId;
+    private Boolean restrictEnrollmentsToCourseDates;
     private String subaccountName;
 
     private List<Section> sections;
@@ -204,11 +205,20 @@ public class Course extends BaseCanvasModel implements Serializable {
         this.enrollments = enrollments;
     }
 
+    @CanvasField(postKey = "restrict_enrollments_to_course_dates")
+    public Boolean getRestrictEnrollmentsToCourseDates() {
+        return restrictEnrollmentsToCourseDates;
+    }
+
+    public void setRestrictEnrollmentsToCourseDates(Boolean restrictEnrollmentsToCourseDates) {
+        this.restrictEnrollmentsToCourseDates = restrictEnrollmentsToCourseDates;
+    }
+
+    @CanvasField(postKey = "subaccount_name")
     public String getSubaccountName() {
         return subaccountName;
     }
 
-    @CanvasField(postKey = "subaccount_name")
     public void setSubaccountName(String subaccountName) {
         this.subaccountName = subaccountName;
     }
