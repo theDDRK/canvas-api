@@ -22,11 +22,11 @@
   <distributionManagement>
 	<repository>
 		<id>maven.id.ubc.ca</id>
-		<url>http://maven.id.ubc.ca:8080/artifactory/lms-ext-release/</url>
+		<url>https://maven.id.ubc.ca:8080/artifactory/lms-ext-release/</url>
 	</repository>
     <snapshotRepository>
 		<id>maven.id.ubc.ca</id>
-		<url>http://maven.id.ubc.ca:8080/artifactory/lms-ext-release/</url>
+		<url>https://maven.id.ubc.ca:8080/artifactory/lms-ext-release/</url>
     </snapshotRepository>
   </distributionManagement>
 
