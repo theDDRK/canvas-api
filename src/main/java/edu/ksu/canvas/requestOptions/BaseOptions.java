@@ -30,4 +30,8 @@ public abstract class BaseOptions {
     protected void addNumberList(String key, List<? extends Number> list) {
         optionsMap.put(key, list.stream().map(i->i.toString()).collect(Collectors.toList()));
     }
+
+    protected void addStringList(String key, List<String> list) {
+    	optionsMap.put(key, list);
+    }
 }
