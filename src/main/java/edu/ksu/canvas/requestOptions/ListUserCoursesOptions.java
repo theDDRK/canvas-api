@@ -69,4 +69,9 @@ public class ListUserCoursesOptions extends BaseOptions {
         addSingleItem("enrollment_state", enrollmentState.toString());
         return this;
     }
+
+	public ListUserCoursesOptions roles(List<String> roles) {
+        addStringList("role[]", roles);
+        return this;
+	}
 }
