@@ -28,6 +28,10 @@
 		<id>maven.id.ubc.ca</id>
 		<url>https://maven.id.ubc.ca/artifactory/lms-ext-release/</url>
     </snapshotRepository>
+    <site>
+      <id>canvas-api-site</id>
+      <url>file:///var/www/maven-site/canvas-api</url>
+    </site>
   </distributionManagement>
 
   <build>
