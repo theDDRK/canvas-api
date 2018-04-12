@@ -5,23 +5,16 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 import edu.ksu.canvas.enums.SectionIncludes;
-import edu.ksu.canvas.interfaces.SectionReader;
-import edu.ksu.canvas.interfaces.SectionWriter;
+import edu.ksu.canvas.interfaces.*;
 import edu.ksu.canvas.model.Section;
-import edu.ksu.canvas.net.Response;
-import edu.ksu.canvas.net.RestClient;
+import edu.ksu.canvas.net.*;
 import edu.ksu.canvas.oauth.OauthToken;
 
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class SectionsImpl extends BaseImpl<Section, SectionReader, SectionWriter> implements SectionReader,
@@ -92,11 +85,11 @@ public class SectionsImpl extends BaseImpl<Section, SectionReader, SectionWriter
         return responseParser.parseToObject(Section.class, response);
     }
 
-	@Override
-	public Optional<Section> crosslist(String sectionId, String courseId) throws IOException {
+    @Override
+    public Optional<Section> crosslist(String sectionId, String courseId) throws IOException {
         LOG.debug("crosslisting section " + sectionId + " to course " + courseId);
         String url = buildCanvasUrl("/sections/" + sectionId + "/crosslist/" + courseId, Collections.emptyMap());
         Response response = canvasMessenger.sendJsonPostToCanvas(oauthToken, url, new JsonObject());
         return responseParser.parseToObject(Section.class, response);
-	}
+    }
 }

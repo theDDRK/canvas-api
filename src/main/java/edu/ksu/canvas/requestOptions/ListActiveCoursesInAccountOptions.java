@@ -33,7 +33,7 @@ public class ListActiveCoursesInAccountOptions extends BaseOptions {
     }
 
     public enum SearchBy {
-    	COURSE, TEACHER;
+        COURSE, TEACHER;
 
         @Override
         public String toString() { return name().toLowerCase(); }
@@ -160,7 +160,7 @@ public class ListActiveCoursesInAccountOptions extends BaseOptions {
     }
 
     public ListActiveCoursesInAccountOptions searchBy(SearchBy searchType) {
-    	addSingleItem("search_by", searchType.toString());
-    	return this;
+        addSingleItem("search_by", searchType.toString());
+        return this;
     }
 }
