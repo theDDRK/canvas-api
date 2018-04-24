@@ -34,6 +34,7 @@ public class Course extends BaseCanvasModel implements Serializable {
     private Boolean restrictEnrollmentsToCourseDates;
     private String subaccountName;
     private Long gradingStandardId;
+    private String subaccountName;
 
     private List<Section> sections;
     private List<Enrollment> enrollments;
@@ -240,5 +241,23 @@ public class Course extends BaseCanvasModel implements Serializable {
 
     public void setGradingStandardId(Long gradingStandardId) {
         this.gradingStandardId = gradingStandardId;
+    }
+
+    public String getSubaccountName() {
+        return subaccountName;
+    }
+
+    @CanvasField(postKey = "subaccount_name")
+    public void setSubaccountName(String subaccountName) {
+        this.subaccountName = subaccountName;
+    }
+
+    @CanvasField(postKey = "teachers")
+    public List<UserDisplay> getTeachers() {
+        return teachers;
+    }
+
+    public void setTeachers(List<UserDisplay> teachers) {
+        this.teachers = teachers;
     }
 }

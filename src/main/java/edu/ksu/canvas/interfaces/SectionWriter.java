@@ -1,9 +1,9 @@
 package edu.ksu.canvas.interfaces;
 
+import edu.ksu.canvas.model.Section;
+
 import java.io.IOException;
 import java.util.Optional;
-
-import edu.ksu.canvas.model.Section;
 
 /**
  * Created by japshvincent on 4/28/16.
@@ -50,5 +50,5 @@ public interface SectionWriter extends CanvasWriter<Section, SectionWriter> {
      * @return the section object that was moved
      * @throws IOException When there is an error communicating with Canvas
      */
-	Optional<Section> crosslist(String sectionId, String courseId) throws IOException;
+    Optional<Section> crosslist(String sectionId, String courseId) throws IOException;
 }
