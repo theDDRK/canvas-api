@@ -17,6 +17,9 @@ import edu.ksu.canvas.interfaces.ResponseParser;
 import edu.ksu.canvas.net.Response;
 
 import java.lang.reflect.Type;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -28,10 +31,11 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GsonResponseParser implements ResponseParser {
-    private static final Logger LOG = Logger.getLogger(GsonResponseParser.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GsonResponseParser.class);
 
     @Override
     public <T> List<T> parseToList(Type type, Response response) {
@@ -81,9 +85,47 @@ public class GsonResponseParser implements ResponseParser {
                 if(src == null) {
                     return null;
                 }
-                String dateString = ZonedDateTime.ofInstant(src.toInstant(), ZoneId.systemDefault())
+                String dateString = ZonedDateTime.ofInstant(src.toInstant(), ZoneOffset.UTC)
                         .format(DateTimeFormatter.ISO_INSTANT);
                 return new JsonPrimitive(dateString);
+            }
+        }).registerTypeAdapter(Instant.class, new JsonDeserializer<Instant>() {
+            // This doesn't support the format showing in the Canvas API documentation of:
+            // 2012-07-19T15:00:00-06:00, however when you create a date using this format
+            // Canvas sends you back the response in the UTC so we don't need to parse it.
+            @Override
+            public Instant deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+                if(json == null || StringUtils.isBlank(json.getAsString())) {
+                    return null;
+                }
+                try {
+
+                    return Instant.from(DateTimeFormatter.ISO_INSTANT.parse(json.getAsString()));
+                } catch (DateTimeParseException e) {
+                    throw new JsonParseException(e);
+                }
+            }
+        }).registerTypeAdapter(Instant.class, new JsonSerializer<Instant>() {
+            @Override
+            public JsonElement serialize(Instant src, Type typeOfSrc, JsonSerializationContext context) {
+                if(src == null) {
+                    return null;
+                }
+                String dateString = ZonedDateTime.ofInstant(src, ZoneOffset.UTC)
+                        .format(DateTimeFormatter.ISO_INSTANT);
+                return new JsonPrimitive(dateString);
+            }
+        }).registerTypeAdapter(LocalDate.class, new JsonDeserializer<LocalDate>() {
+            @Override
+            public LocalDate deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+                if(json == null || StringUtils.isBlank(json.getAsString())) {
+                    return null;
+                }
+                try {
+                    return LocalDate.from(DateTimeFormatter.ISO_LOCAL_DATE.parse(json.getAsString()));
+                } catch (DateTimeParseException e) {
+                    throw new JsonParseException(e);
+                }
             }
         });
         return gsonBuilder.create();

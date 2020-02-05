@@ -4,15 +4,18 @@ import com.google.gson.reflect.TypeToken;
 import edu.ksu.canvas.interfaces.CourseReader;
 import edu.ksu.canvas.interfaces.CourseWriter;
 import edu.ksu.canvas.model.Course;
+import edu.ksu.canvas.model.status.Conclude;
 import edu.ksu.canvas.model.status.Delete;
 import edu.ksu.canvas.net.Response;
 import edu.ksu.canvas.net.RestClient;
 import edu.ksu.canvas.oauth.OauthToken;
+import edu.ksu.canvas.requestOptions.DeleteCourseOptions;
 import edu.ksu.canvas.requestOptions.GetSingleCourseOptions;
 import edu.ksu.canvas.requestOptions.ListActiveCoursesInAccountOptions;
 import edu.ksu.canvas.requestOptions.ListCurrentUserCoursesOptions;
 import edu.ksu.canvas.requestOptions.ListUserCoursesOptions;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -24,7 +27,7 @@ import java.util.Optional;
 
 
 public class CourseImpl extends BaseImpl<Course, CourseReader, CourseWriter> implements CourseReader, CourseWriter {
-    private static final Logger LOG = Logger.getLogger(CourseReader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CourseReader.class);
 
     public CourseImpl(String canvasBaseUrl, Integer apiVersion, OauthToken oauthToken, RestClient restClient,
                       int connectTimeout, int readTimeout, Integer paginationPageSize, Boolean serializeNulls) {
@@ -34,13 +37,13 @@ public class CourseImpl extends BaseImpl<Course, CourseReader, CourseWriter> imp
 
     @Override
     public List<Course> listCurrentUserCourses(ListCurrentUserCoursesOptions options) throws IOException {
-        LOG.info("listing courses for user");
+        LOG.debug("listing courses for user");
         String url = buildCanvasUrl("courses/", options.getOptionsMap());
         return getListFromCanvas(url);
     }
 
     public List<Course> listUserCourses(ListUserCoursesOptions options) throws  IOException {
-        LOG.info("listing course for user");
+        LOG.debug("listing course for user");
         String url = buildCanvasUrl("users/" + options.getUserId() + "/courses", options.getOptionsMap());
         return getListFromCanvas(url);
     }
@@ -92,6 +95,28 @@ public class CourseImpl extends BaseImpl<Course, CourseReader, CourseWriter> imp
         Optional<Delete> responseParsed = responseParser.parseToObject(Delete.class, response);
 
         return responseParsed.map(r -> r.getDelete()).orElse(false);
+    }
+
+    @Override
+    public Boolean deleteCourse(DeleteCourseOptions options) throws IOException {
+        String url = buildCanvasUrl("courses/" + options.getCourseId(), Collections.emptyMap());
+        Response response = canvasMessenger.deleteFromCanvas(oauthToken, url, options.getOptionsMap());
+        LOG.debug("response " + response.toString());
+        if (response.getErrorHappened() || response.getResponseCode() != 200) {
+            LOG.debug("Failed to delete course, error message: " + response.toString());
+            return false;
+        }
+
+        // The response from Canvas depends on the value of the event parameter.
+        if (options.getEventType() == DeleteCourseOptions.EventType.DELETE) {
+            Optional<Delete> responseParsed = responseParser.parseToObject(Delete.class, response);
+            return responseParsed.map(Delete::getDelete).orElse(false);
+        } else if (options.getEventType() == DeleteCourseOptions.EventType.CONCLUDE) {
+            Optional<Conclude> responseParsed = responseParser.parseToObject(Conclude.class, response);
+            return responseParsed.map(Conclude::getConclude).orElse(false);
+        } else {
+            throw new IllegalArgumentException("Unknown Canvas response: " + response.getContent());
+        }
     }
 
     @Override

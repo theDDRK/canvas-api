@@ -10,13 +10,20 @@ public class GetQuizSubmissionsOptions extends BaseOptions {
     private String quizId;
 
     public enum Include {
-        USER;
+        // The canvas API gives a 3rd option here with a value of "submissions" but does not document what is
+        // returned so I am not including it as an option until we can determine exactly what it is.
+        USER, QUIZ;
 
         public String toString() {
             return name().toLowerCase();
         }
     }
 
+    /**
+     * Optionally include more information with the returned Quiz Submission objects.
+     * @param includes List of optional includes
+     * @return This object to allow adding more options
+     */
     public GetQuizSubmissionsOptions includes(final List<Include> includes) {
         addEnumList("include[]", includes);
         return this;

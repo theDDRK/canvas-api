@@ -10,8 +10,6 @@ import edu.ksu.canvas.net.FakeRestClient;
 import edu.ksu.canvas.net.Response;
 import edu.ksu.canvas.requestOptions.GetSingleAssignmentOptions;
 import edu.ksu.canvas.requestOptions.ListCourseAssignmentsOptions;
-
-import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +19,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class AssignmentRetrieverUTest extends CanvasTestBase {
-    private static final Logger LOG = Logger.getLogger(AssignmentRetrieverUTest.class);
     @Autowired
     private FakeRestClient fakeRestClient;
     private AssignmentReader assignmentReader;
@@ -37,9 +34,9 @@ public class AssignmentRetrieverUTest extends CanvasTestBase {
     public void testListCourseAssignments() throws Exception {
         String someCourseId = "123456";
         Assignment assignment1 = new Assignment();
-        assignment1.setId("1");
+        assignment1.setId(1);
         Assignment assignment2 = new Assignment();
-        assignment2.setId("2");
+        assignment2.setId(2);
         Response notErroredResponse = new Response();
         notErroredResponse.setErrorHappened(false);
         notErroredResponse.setResponseCode(200);
@@ -66,7 +63,7 @@ public class AssignmentRetrieverUTest extends CanvasTestBase {
     @Test
     public void testRetrieveAssignment() throws Exception {
         String someCourseId = "1234";
-        String someAssignmentId = "123";
+        Integer someAssignmentId = 123;
         String url = baseUrl + "/api/v1/courses/" + someCourseId + "/assignments/" + someAssignmentId;
         fakeRestClient.addSuccessResponse(url, "SampleJson/assignment/MinimalAssignment.json");
         Optional<Assignment> assignment = assignmentReader.getSingleAssignment(new GetSingleAssignmentOptions(someCourseId, someAssignmentId));
@@ -79,9 +76,9 @@ public class AssignmentRetrieverUTest extends CanvasTestBase {
         String someUserId = "899123456";
         String someCourseId = "123456";
         Assignment assignment1 = new Assignment();
-        assignment1.setId("1");
+        assignment1.setId(1);
         Assignment assignment2 = new Assignment();
-        assignment2.setId("2");
+        assignment2.setId(2);
         Response notErroredResponse = new Response();
         notErroredResponse.setErrorHappened(false);
         notErroredResponse.setResponseCode(200);
@@ -109,7 +106,7 @@ public class AssignmentRetrieverUTest extends CanvasTestBase {
     public void testSisUserMasqueradingRetriveAssignment() throws Exception{
         String someUserId = "8991123123";
         String someCourseId = "1234";
-        String someAssignmentId = "123";
+        Integer someAssignmentId = 123;
         String url = baseUrl + "/api/v1/courses/" + someCourseId + "/assignments/" + someAssignmentId + "?as_user_id=" + CanvasConstants.MASQUERADE_SIS_USER + ":" + someUserId;
         fakeRestClient.addSuccessResponse(url, "SampleJson/assignment/MinimalAssignment.json");
         Optional<Assignment> assignment = assignmentReader.readAsSisUser(someUserId).getSingleAssignment(new GetSingleAssignmentOptions(someCourseId, someAssignmentId));
@@ -122,9 +119,9 @@ public class AssignmentRetrieverUTest extends CanvasTestBase {
         String someUserId = "899123456";
         String someCourseId = "123456";
         Assignment assignment1 = new Assignment();
-        assignment1.setId("1");
+        assignment1.setId(1);
         Assignment assignment2 = new Assignment();
-        assignment2.setId("2");
+        assignment2.setId(2);
         Response notErroredResponse = new Response();
         notErroredResponse.setErrorHappened(false);
         notErroredResponse.setResponseCode(200);
@@ -152,7 +149,7 @@ public class AssignmentRetrieverUTest extends CanvasTestBase {
     public void testCanvasUserMasqueradingRetriveAssignment() throws Exception{
         String someUserId = "8991123123";
         String someCourseId = "1234";
-        String someAssignmentId = "123";
+        Integer someAssignmentId = 123;
         String url = baseUrl + "/api/v1/courses/" + someCourseId + "/assignments/" + someAssignmentId + "?as_user_id=" + someUserId;
         fakeRestClient.addSuccessResponse(url, "SampleJson/assignment/MinimalAssignment.json");
         Optional<Assignment> assignment = assignmentReader.readAsCanvasUser(someUserId).getSingleAssignment(new GetSingleAssignmentOptions(someCourseId, someAssignmentId));

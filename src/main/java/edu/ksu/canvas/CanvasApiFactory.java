@@ -4,8 +4,8 @@ import edu.ksu.canvas.impl.*;
 import edu.ksu.canvas.interfaces.*;
 import edu.ksu.canvas.net.*;
 import edu.ksu.canvas.oauth.OauthToken;
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -20,7 +20,7 @@ import java.util.*;
 public class CanvasApiFactory {
 
     public static final Integer CANVAS_API_VERSION = 1;
-    private static final Logger LOG = Logger.getLogger(CanvasApiFactory.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CanvasApiFactory.class);
     private static final int DEFAULT_CONNECT_TIMEOUT_MS = 5000;
     private static final int DEFAULT_READ_TIMEOUT_MS = 120000;
     Map<Class<? extends CanvasReader>, Class<? extends BaseImpl>> readerMap;
@@ -151,6 +151,7 @@ public class CanvasApiFactory {
         readerMap.put(AssignmentReader.class, AssignmentImpl.class);
         readerMap.put(ConversationReader.class, ConversationImpl.class);
         readerMap.put(CourseReader.class, CourseImpl.class);
+        readerMap.put(TabReader.class, TabImpl.class);
         readerMap.put(EnrollmentReader.class, EnrollmentImpl.class);
         readerMap.put(QuizQuestionReader.class, QuizQuestionImpl.class);
         readerMap.put(QuizReader.class, QuizImpl.class);
@@ -165,18 +166,25 @@ public class CanvasApiFactory {
         readerMap.put(RoleReader.class, RoleImpl.class);
         readerMap.put(ExternalToolReader.class, ExternalToolImpl.class);
         readerMap.put(LoginReader.class, LoginImpl.class);
+        readerMap.put(CalendarReader.class, CalendarEventImpl.class);
+        readerMap.put(AccountReportSummaryReader.class, AccountReportSummaryImpl.class);
+        readerMap.put(AccountReportReader.class, AccountReportImpl.class);
+        readerMap.put(ContentMigrationReader.class, ContentMigrationImpl.class);
+        readerMap.put(ProgressReader.class, ProgressImpl.class);
+        readerMap.put(CourseSettingsReader.class, CourseSettingsImpl.class);
+        readerMap.put(GradingStandardReader.class, GradingStandardImpl.class);
 
         writerMap.put(AssignmentOverrideWriter.class, AssignmentOverrideImpl.class);
         writerMap.put(AdminWriter.class, AdminImpl.class);
         writerMap.put(AssignmentWriter.class, AssignmentImpl.class);
         writerMap.put(ConversationWriter.class, ConversationImpl.class);
         writerMap.put(CourseWriter.class, CourseImpl.class);
+        writerMap.put(TabWriter.class, TabImpl.class);
         writerMap.put(EnrollmentWriter.class, EnrollmentImpl.class);
         writerMap.put(QuizQuestionWriter.class, QuizQuestionImpl.class);
         writerMap.put(QuizWriter.class, QuizImpl.class);
         writerMap.put(QuizSubmissionQuestionWriter.class, QuizSubmissionQuestionImpl.class);
         writerMap.put(QuizSubmissionWriter.class, QuizSubmissionImpl.class);
-        writerMap.put(SectionWriter.class, SectionsImpl.class);
         writerMap.put(UserWriter.class, UserImpl.class);
         writerMap.put(PageWriter.class, PageImpl.class);
         writerMap.put(SectionWriter.class, SectionsImpl.class);
@@ -185,5 +193,12 @@ public class CanvasApiFactory {
         writerMap.put(RoleWriter.class, RoleImpl.class);
         writerMap.put(ExternalToolWriter.class, ExternalToolImpl.class);
         writerMap.put(LoginWriter.class, LoginImpl.class);
+        writerMap.put(CalendarWriter.class, CalendarEventImpl.class);
+        writerMap.put(AccountReportSummaryWriter.class, AccountReportSummaryImpl.class);
+        writerMap.put(AccountReportWriter.class, AccountReportImpl.class);
+        writerMap.put(ContentMigrationWriter.class, ContentMigrationImpl.class);
+        writerMap.put(ProgressWriter.class, ProgressImpl.class);
+        writerMap.put(CourseSettingsWriter.class, CourseSettingsImpl.class);
+        writerMap.put(GradingStandardWriter.class, GradingStandardImpl.class);
     }
 }

@@ -3,11 +3,13 @@ package edu.ksu.canvas.model;
 import edu.ksu.canvas.annotation.CanvasField;
 import edu.ksu.canvas.annotation.CanvasObject;
 import edu.ksu.canvas.impl.GsonResponseParser;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,13 +18,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 public abstract class BaseCanvasModel {
-    private static final Logger LOG = Logger.getLogger(BaseCanvasModel.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BaseCanvasModel.class);
 
     /* Canvas has post parameter keys in non consistent formats. Occasionally they are 'class[field]' and other times
      * they are just 'field'. This method will create a map with the correct post keys and values based on the
      * @CanvasField and @CanvasObject annotations.
      */
-    public Map<String, List<String>> toPostMap() {
+    public Map<String, List<String>> toPostMap(boolean includeNulls) {
         Class<? extends BaseCanvasModel> clazz = this.getClass();
         Map<String, List<String>> postMap = new HashMap<>();
         for (Method method : clazz.getMethods()) {
@@ -31,7 +33,7 @@ public abstract class BaseCanvasModel {
                 final String postKey = getPostKey(canvasFieldAnnotation);
                 try {
                     final List<String> fieldValues = getFieldValues(method);
-                    if (fieldValues != null) {
+                    if ((fieldValues != null && !fieldValues.isEmpty()) || includeNulls) {
                         if (postMap.containsKey(postKey)) {
                             postMap.get(postKey).addAll(fieldValues);
                         } else {
@@ -94,7 +96,7 @@ public abstract class BaseCanvasModel {
         final Object returnValue = getter.invoke(this);
 
         if (returnValue == null) {
-           return null;
+           return Collections.emptyList();
         }
 
         if (Iterable.class.isAssignableFrom(returnType)) {

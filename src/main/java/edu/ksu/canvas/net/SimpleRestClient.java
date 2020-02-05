@@ -1,6 +1,8 @@
 package edu.ksu.canvas.net;
 
 import com.google.gson.Gson;
+import edu.ksu.canvas.errors.ErrorHandler;
+import edu.ksu.canvas.errors.UserErrorHandler;
 import edu.ksu.canvas.exception.CanvasException;
 import edu.ksu.canvas.exception.InvalidOauthTokenException;
 import edu.ksu.canvas.exception.ObjectNotFoundException;
@@ -16,7 +18,9 @@ import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -25,12 +29,14 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+
+import com.google.gson.Gson;
+import org.slf4j.LoggerFactory;
 
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
@@ -42,41 +48,51 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class SimpleRestClient implements RestClient {
-    private static final Logger LOG = Logger.getLogger(SimpleRestClient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SimpleRestClient.class);
+
+    private List<ErrorHandler> errorHandlers;
+
+    public SimpleRestClient() {
+        errorHandlers = new ArrayList<>();
+        errorHandlers.add(new UserErrorHandler());
+    }
 
     @Override
     public Response sendApiGet(@NotNull OauthToken token, @NotNull String url,
                                int connectTimeout, int readTimeout) throws IOException {
+
         LOG.debug("Sending GET request to URL: " + url);
         Long beginTime = System.currentTimeMillis();
         Response response = new Response();
-        HttpClient httpClient = createHttpClient(connectTimeout, readTimeout);
-        HttpGet httpGet = new HttpGet(url);
-        httpGet.setHeader("Authorization", "Bearer" + " " + token.getAccessToken());
+        try (CloseableHttpClient httpClient = createHttpClient(connectTimeout, readTimeout)) {
+            HttpGet httpGet = new HttpGet(url);
+            httpGet.setHeader("Authorization", "Bearer" + " " + token.getAccessToken());
 
-        HttpResponse httpResponse = httpClient.execute(httpGet);
-        checkHeaders(httpResponse, httpGet);
+            try (CloseableHttpResponse httpResponse = httpClient.execute(httpGet)) {
 
-        //deal with the actual content
-        response.setContent(handleResponse(httpResponse, httpGet));
-        response.setResponseCode(httpResponse.getStatusLine().getStatusCode());
-        Long endTime = System.currentTimeMillis();
-        LOG.debug("GET call took: " + (endTime - beginTime) + "ms");
+                //deal with the actual content
+                response.setContent(handleResponse(httpResponse, httpGet));
+                response.setResponseCode(httpResponse.getStatusLine().getStatusCode());
+                Long endTime = System.currentTimeMillis();
+                LOG.debug("GET call took: " + (endTime - beginTime) + "ms");
 
-        //deal with pagination
-        Header linkHeader = httpResponse.getFirstHeader("Link");
-        String linkHeaderValue = linkHeader == null ? null : httpResponse.getFirstHeader("Link").getValue();
-        if(linkHeaderValue == null) {
-            return response;
-        }
-        List<String> links = Arrays.asList(linkHeaderValue.split(","));
-        for (String link : links) {
-            if(link.contains("rel=\"next\"")) {
-                LOG.debug("response has more pages");
-                String nextLink = link.substring(1, link.indexOf(';')-1); //format is <http://.....>; rel="next"
-                response.setNextLink(nextLink);
+                //deal with pagination
+                Header linkHeader = httpResponse.getFirstHeader("Link");
+                String linkHeaderValue = linkHeader == null ? null : httpResponse.getFirstHeader("Link").getValue();
+                if (linkHeaderValue == null) {
+                    return response;
+                }
+                List<String> links = Arrays.asList(linkHeaderValue.split(","));
+                for (String link : links) {
+                    if (link.contains("rel=\"next\"")) {
+                        LOG.debug("response has more pages");
+                        String nextLink = link.substring(1, link.indexOf(';') - 1); //format is <http://.....>; rel="next"
+                        response.setNextLink(nextLink);
+                    }
+                }
             }
         }
+
         return response;
     }
 
@@ -110,14 +126,18 @@ public class SimpleRestClient implements RestClient {
 
         StringEntity requestBody = new StringEntity(json, ContentType.APPLICATION_JSON);
         action.setEntity(requestBody);
-        HttpResponse httpResponse = httpClient.execute(action);
+        try {
+            HttpResponse httpResponse = httpClient.execute(action);
 
-        String content = handleResponse(httpResponse, action);
+            String content = handleResponse(httpResponse, action);
 
-        response.setContent(content);
-        response.setResponseCode(httpResponse.getStatusLine().getStatusCode());
-        Long endTime = System.currentTimeMillis();
-        LOG.debug("POST call took: " + (endTime - beginTime) + "ms");
+            response.setContent(content);
+            response.setResponseCode(httpResponse.getStatusLine().getStatusCode());
+            Long endTime = System.currentTimeMillis();
+            LOG.debug("POST call took: " + (endTime - beginTime) + "ms");
+        } finally {
+            action.releaseConnection();
+        }
 
         return response;
     }
@@ -240,8 +260,19 @@ public class SimpleRestClient implements RestClient {
         // If we receive a 5xx exception, we should not wrap it in an unchecked exception for upstream clients to deal with.
         if(statusCode < 200 || (statusCode > 299 && statusCode <= 499)) {
             LOG.error("HTTP status " + statusCode + " returned from " + request.getURI());
-            throw new CanvasException(extractErrorMessageFromResponse(httpResponse), String.valueOf(request.getURI()));
+            handleError(request, httpResponse);
         }
+        //TODO Handling of 422 when the entity is malformed.
+    }
+
+    private void handleError(HttpRequestBase httpRequest, HttpResponse httpResponse) {
+        for (ErrorHandler handler : errorHandlers) {
+            if (handler.shouldHandle(httpRequest, httpResponse)) {
+                handler.handle(httpRequest, httpResponse);
+            }
+        }
+        String canvasErrorString = extractErrorMessageFromResponse(httpResponse);
+        throw new CanvasException(canvasErrorString, String.valueOf(httpRequest.getURI()));
     }
 
     /**
@@ -255,6 +286,7 @@ public class SimpleRestClient implements RestClient {
      */
     private String extractErrorMessageFromResponse(HttpResponse response) {
         String contentType = response.getEntity().getContentType().getValue();
+        String message = null;
         if(contentType.contains("application/json")) {
             Gson gson = GsonResponseParser.getDefaultGsonParser(false);
             String responseBody = null;
@@ -265,19 +297,19 @@ public class SimpleRestClient implements RestClient {
                 List<ErrorMessage> errors = errorResponse.getErrors();
                 if(errors != null) {
                     //I have only ever seen a single error message but it is an array so presumably there could be more.
-                    return errors.stream().map(e -> e.getMessage()).collect(Collectors.joining(", "));
+                    message = errors.stream().map(ErrorMessage::getMessage).collect(Collectors.joining(", "));
                 }
                 else{
-                    return responseBody;
+                    message = responseBody;
                 }
             } catch (Exception e) {
                 //Returned JSON was not in expected format. Fall back to returning the whole response body, if any
                 if(StringUtils.isNotBlank(responseBody)) {
-                    return responseBody;
+                    message = responseBody;
                 }
             }
         }
-        return null;
+        return message;
     }
 
     private String handleResponse(HttpResponse httpResponse, HttpRequestBase request) throws IOException {
@@ -285,12 +317,14 @@ public class SimpleRestClient implements RestClient {
         return new BasicResponseHandler().handleResponse(httpResponse);
     }
 
-    private HttpClient createHttpClient(int connectTimeout, int readTimeout) {
-        HttpClient httpClient = new DefaultHttpClient();
-        HttpParams params = httpClient.getParams();
-        params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectTimeout);
-        params.setParameter(CoreConnectionPNames.SO_TIMEOUT, readTimeout);
-        return httpClient;
+    private CloseableHttpClient createHttpClient(int connectTimeout, int readTimeout) {
+        RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(connectTimeout)
+                .setSocketTimeout(readTimeout)
+                .build();
+        return HttpClientBuilder.create()
+                .setDefaultRequestConfig(config)
+                .build();
     }
 
     private static List<NameValuePair> convertParameters(final Map<String, List<String>> parameterMap) {
@@ -302,9 +336,13 @@ public class SimpleRestClient implements RestClient {
 
         for (final Map.Entry<String, List<String>> param : parameterMap.entrySet()) {
             final String key = param.getKey();
+            if(param.getValue() == null || param.getValue().isEmpty()) {
+                params.add(new BasicNameValuePair(key, null));
+                LOG.debug("key: " + key + "\tempty value");
+            }
             for (final String value : param.getValue()) {
                 params.add(new BasicNameValuePair(key, value));
-                LOG.debug("key "+ key +"\t value : " + value);
+                LOG.debug("key: "+ key +"\tvalue: " + value);
             }
         }
         return params;
