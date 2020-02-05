@@ -5,9 +5,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 import edu.ksu.canvas.enums.SectionIncludes;
-import edu.ksu.canvas.interfaces.*;
+import edu.ksu.canvas.interfaces.SectionReader;
+import edu.ksu.canvas.interfaces.SectionWriter;
 import edu.ksu.canvas.model.Section;
-import edu.ksu.canvas.net.*;
+import edu.ksu.canvas.net.Response;
+import edu.ksu.canvas.net.RestClient;
 import edu.ksu.canvas.oauth.OauthToken;
 
 import org.slf4j.Logger;
@@ -15,7 +17,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class SectionsImpl extends BaseImpl<Section, SectionReader, SectionWriter> implements SectionReader,
