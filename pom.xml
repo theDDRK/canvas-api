@@ -4,7 +4,7 @@
 
   <groupId>ca.ubc.it.lms</groupId>
   <artifactId>canvas-api</artifactId>
-  <version>1.3.0.BUILD-SNAPSHOT</version>
+  <version>1.3.0</version>
   <packaging>jar</packaging>
 
   <name>Canvas API Library</name>
