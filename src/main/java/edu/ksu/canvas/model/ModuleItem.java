@@ -12,10 +12,10 @@ public class ModuleItem extends BaseCanvasModel implements Serializable {
     private Long indent;
     private String type;
     private Long contentID;
-    private String htmlURL;
+    private String htmlUrl;
     private String url;
-    private String pageURL;
-    private String externalURL;
+    private String pageUrl;
+    private String externalUrl;
     private Boolean newTab;
     private Boolean published;
 
@@ -80,12 +80,12 @@ public class ModuleItem extends BaseCanvasModel implements Serializable {
         this.contentID = contentID;
     }
 
-    public String getHtmlURL() {
-        return htmlURL;
+    public String getHtmlUrl() {
+        return htmlUrl;
     }
 
-    public void setHtmlURL(String htmlURL) {
-        this.htmlURL = htmlURL;
+    public void setHtmlUrl(String htmlUrl) {
+        this.htmlUrl = htmlUrl;
     }
 
     public String getUrl() {
@@ -96,20 +96,20 @@ public class ModuleItem extends BaseCanvasModel implements Serializable {
         this.url = url;
     }
 
-    public String getPageURL() {
-        return pageURL;
+    public String getPageUrl() {
+        return pageUrl;
     }
 
-    public void setPageURL(String pageURL) {
-        this.pageURL = pageURL;
+    public void setPageUrl(String pageUrl) {
+        this.pageUrl = pageUrl;
     }
 
-    public String getExternalURL() {
-        return externalURL;
+    public String getExternalUrl() {
+        return externalUrl;
     }
 
-    public void setExternalURL(String externalURL) {
-        this.externalURL = externalURL;
+    public void setExternalUrl(String externalUrl) {
+        this.externalUrl = externalUrl;
     }
 
     public Boolean getNewTab() {
